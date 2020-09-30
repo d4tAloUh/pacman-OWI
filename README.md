@@ -1,7 +1,7 @@
 #Pacman game with Algorithms
 
-[GITHUB LINK](https://github.com/d4tAloUh/pacman-OWI)
-=======
+###[GITHUB LINK](https://github.com/d4tAloUh/pacman-OWI)
+
 ## This project was done by Karmeliuk Kostiantyn, Kupchyk Daryna, Myronovych Oleksandr.
 
 **To start up the project do the following commands**<br>
@@ -14,6 +14,9 @@ cd ../..
 4. pip install -r requirements.txt
 5. python pacman.py
 ```
+
+##Pacman game with Algorithms
+
 
 
 #####Used pacman from [github](https://github.com/hbokmann/Pacman)
