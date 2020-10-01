@@ -6,41 +6,35 @@ from settings import *
 
 # Call this function so the Pygame library can initialize itself
 pygame.init()
-Trollicon = pygame.image.load('images/Trollman.png')
+
+clock = pygame.time.Clock()
 # Create an 606x606 sized screen
 screen = pygame.display.set_mode([606, 606])
+font = pygame.font.Font("freesansbold.ttf", 24)
+
 
 # This is a list of 'sprites.' Each block in the program is
 # added to this list. The list is managed by a class called 'RenderPlain.'
+def configure_initial_window():
+    Trollicon = pygame.image.load('images/Trollman.png')
 
-# Set the title of the window
-pygame.display.set_caption('Pacman')
+    # Set the title of the window
+    pygame.display.set_caption('Pacman')
 
-# Create a surface we can draw on
-background = pygame.Surface(screen.get_size())
+    # Create a surface we can draw on
+    background = pygame.Surface(screen.get_size())
 
-# Used for converting color maps and such
-background = background.convert()
+    # Used for converting color maps and such
+    background = background.convert()
 
-# Fill the screen with a black background
-background.fill(black)
+    # Fill the screen with a black background
+    background.fill(black)
 
-clock = pygame.time.Clock()
+    pygame.display.set_icon(Trollicon)
 
-pygame.font.init()
-font = pygame.font.Font("freesansbold.ttf", 24)
-
-# default locations for Pacman and monsters
-w = 303 - 16  # Width
-PACMAN_HEIGHT = (7 * 60) + 19  # Pacman height
-MONSTER_HEIGHT = (4 * 60) + 19  # Monster height
-i_w = 303 - 16 - 32  # Inky width
-c_w = 303 + (32 - 16)  # Clyde width
-
-pygame.display.set_icon(Trollicon)
+    pygame.font.init()
 
 
-# This class represents the bar at the bottom that the player controls
 class Wall(pygame.sprite.Sprite):
     # Constructor function
     def __init__(self, x, y, width, height, color):
@@ -126,7 +120,7 @@ class Circle(pygame.sprite.Sprite):
 
     # Constructor. Pass in the color of the block, 
     # and its x and y position
-    def __init__(self, color, width, height):
+    def __init__(self, color=yellow, width=4, height=4):
         # Call the parent class (Sprite) constructor
         pygame.sprite.Sprite.__init__(self)
 
@@ -142,8 +136,6 @@ class Circle(pygame.sprite.Sprite):
         # Update the position of this object by setting the values 
         # of rect.x and rect.y
         self.rect = self.image.get_rect()
-
-    # This class represents the bar at the bottom that the player controls
 
 
 class Player(pygame.sprite.Sprite):
@@ -166,17 +158,55 @@ class Player(pygame.sprite.Sprite):
         self.prev_x = x
         self.prev_y = y
 
-    def moveUp(self):
-        self.changespeed(0, 30)
+    def set_speed_null(self):
+        self.change_x = 0
+        self.change_y = 0
 
-    def moveDown(self):
+    def moveUp(self):
         self.changespeed(0, -30)
 
+    def moveDown(self):
+        self.changespeed(0, 30)
+
     def moveRight(self):
-        self.changespeed(-30, 0)
+        self.changespeed(30, 0)
 
     def moveLeft(self):
-        self.changespeed(30, 0)
+        self.changespeed(-30, 0)
+
+    def check_y_open(self, walls, vel):
+        old_y = self.rect.top
+        new_y = old_y + vel
+        self.rect.top = new_y
+        y_collide = pygame.sprite.spritecollide(self, walls, False)
+        if y_collide:
+            self.rect.top = old_y
+            return False
+        self.rect.top = old_y
+        return True
+
+    def check_x_open(self, walls, vel):
+        old_x = self.rect.left
+        new_x = old_x + vel
+        self.rect.left = new_x
+        x_collide = pygame.sprite.spritecollide(self, walls, False)
+        if x_collide:
+            self.rect.left = old_x
+            return False
+        self.rect.left = old_x
+        return True
+
+    def up_is_open(self, walls):
+        return self.check_y_open(walls, -30)
+
+    def down_is_open(self, walls):
+        return self.check_y_open(walls, 30)
+
+    def right_is_open(self, walls):
+        return self.check_x_open(walls, 30)
+
+    def left_is_open(self, walls):
+        return self.check_x_open(walls, -30)
 
     # Change the speed of the player
     def changespeed(self, x, y):
@@ -185,7 +215,6 @@ class Player(pygame.sprite.Sprite):
 
     # Find a new position for the player
     def update(self, walls, gate):
-        # Get the old position, in case we need to go back to it
 
         old_x = self.rect.left
         new_x = old_x + self.change_x
@@ -197,17 +226,13 @@ class Player(pygame.sprite.Sprite):
         # Did this update cause us to hit a wall?
         x_collide = pygame.sprite.spritecollide(self, walls, False)
         if x_collide:
-            # Whoops, hit a wall. Go back to the old position
             self.rect.left = old_x
         else:
-
             self.rect.top = new_y
-
-            # Did this update cause us to hit a wall?
             y_collide = pygame.sprite.spritecollide(self, walls, False)
             if y_collide:
-                # Whoops, hit a wall. Go back to the old position
                 self.rect.top = old_y
+
         if gate:
             gate_hit = pygame.sprite.spritecollide(self, gate, False)
             if gate_hit:
@@ -215,33 +240,34 @@ class Player(pygame.sprite.Sprite):
                 self.rect.top = old_y
 
 
-def startGame():
+def move_left_algorithm(pacman, walls):
+    if pacman.left_is_open(walls):
+        print("left is open")
+        pacman.moveLeft()
+
+def start_game_loop(playAlgorithm=None):
+    Pacman = Player(PACMAN_X, PACMAN_Y, "images/Trollman.png")
+
+    # Creation of all sprite lists
     all_sprites_list = pygame.sprite.RenderPlain()
-
     circle_list = pygame.sprite.RenderPlain()
-
     pacman_collide = pygame.sprite.RenderPlain()
-
     wall_list = setupRoomOne(all_sprites_list)
-
     gate = setupGate(all_sprites_list)
-
-    # Create the player paddle object
-    Pacman = Player(w, PACMAN_HEIGHT, "images/Trollman.png")
-    all_sprites_list.add(Pacman)
     pacman_collide.add(Pacman)
+    all_sprites_list.add(Pacman)
 
-    current_amount_of_cirles = 0
+    current_amount_of_circles = 0
 
     for row in range(19):
         for column in range(19):
-            if current_amount_of_cirles >= AMOUNT_OF_CIRCLES:
+            if current_amount_of_circles >= AMOUNT_OF_CIRCLES:
                 break
             # ghosts place, gate is closing entrance
             if (row == 7 or row == 8) and (column == 8 or column == 9 or column == 10):
                 continue
             else:
-                block = Circle(yellow, 4, 4)
+                block = Circle()
 
                 block.rect.x = (30 * column + 6) + 26
                 block.rect.y = (30 * row + 6) + 26
@@ -257,11 +283,9 @@ def startGame():
                     # Add the block to the list of objects
                     circle_list.add(block)
                     all_sprites_list.add(block)
-                    current_amount_of_cirles += 1
+                    current_amount_of_circles += 1
 
     score = 0
-
-    i = 0
 
     while True:
         # ALL EVENT PROCESSING SHOULD GO BELOW THIS COMMENT
@@ -271,56 +295,51 @@ def startGame():
                 break
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
-                    Pacman.changespeed(-30, 0)
+                    Pacman.moveLeft()
                 if event.key == pygame.K_RIGHT:
-                    Pacman.changespeed(30, 0)
+                    Pacman.moveRight()
                 if event.key == pygame.K_UP:
-                    Pacman.changespeed(0, -30)
+                    Pacman.moveUp()
                 if event.key == pygame.K_DOWN:
-                    Pacman.changespeed(0, 30)
-
+                    Pacman.moveDown()
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_LEFT:
-                    Pacman.changespeed(30, 0)
+                    Pacman.moveRight()
                 if event.key == pygame.K_RIGHT:
-                    Pacman.changespeed(-30, 0)
+                    Pacman.moveLeft()
                 if event.key == pygame.K_UP:
-                    Pacman.changespeed(0, 30)
+                    Pacman.moveDown()
                 if event.key == pygame.K_DOWN:
-                    Pacman.changespeed(0, -30)
-
+                    Pacman.moveUp()
         # ALL EVENT PROCESSING SHOULD GO ABOVE THIS COMMENT
 
         # ALL GAME LOGIC SHOULD GO BELOW THIS COMMENT
+        try:
+            playAlgorithm(Pacman, wall_list)
+        except TypeError:
+            pass
+
         Pacman.update(wall_list, gate)
 
-        # See if the Pacman block has collided with anything.
+        # Remove Pacman speed if algorithm is set
+        if playAlgorithm is not None:
+            Pacman.set_speed_null()
 
         blocks_hit_list = pygame.sprite.spritecollide(Pacman, circle_list, True)
 
         # Check the list of collisions.
-        if len(blocks_hit_list) > 0:
+        if blocks_hit_list:
             score += len(blocks_hit_list)
 
         # ALL CODE TO DRAW SHOULD GO BELOW THIS COMMENT
         screen.fill(black)
-
-        # wall_list.draw(screen)
-        # gate.draw(screen)
         all_sprites_list.draw(screen)
 
-        # monster_list.draw(screen)
-
-        text = font.render("Score: " + str(score) + "/" + str(current_amount_of_cirles), True, red)
+        text = font.render("Score: " + str(score) + "/" + str(current_amount_of_circles), True, red)
         screen.blit(text, [10, 10])
 
-        if score == current_amount_of_cirles:
+        if score == current_amount_of_circles:
             game_ended("Congratulations, you won!", 145)
-
-        # monster_hit_player = pygame.sprite.spritecollide(Pacman, monster_list, False)
-
-        # if monster_hit_player:
-        #     doNext("Game Over", 235, all_sprites_list, block_list, monster_list, pacman_collide, wall_list, gate)
 
         # ALL CODE TO DRAW SHOULD GO ABOVE THIS COMMENT
 
@@ -333,7 +352,6 @@ def game_ended(message, left):
         # ALL EVENT PROCESSING SHOULD GO BELOW THIS COMMENT
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                print("trying to quit")
                 pygame.quit()
                 return
             if event.type == pygame.KEYDOWN:
@@ -341,7 +359,7 @@ def game_ended(message, left):
                     pygame.quit()
                     return
                 if event.key == pygame.K_RETURN:
-                    startGame()
+                    start_game_loop()
 
         # Grey background
         w = pygame.Surface((400, 200))  # the size of your rect
@@ -363,6 +381,7 @@ def game_ended(message, left):
         clock.tick(10)
 
 
-startGame()
-
-pygame.quit()
+if __name__ == '__main__':
+    configure_initial_window()
+    start_game_loop(move_left_algorithm)
+    pygame.quit()
