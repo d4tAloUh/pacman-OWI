@@ -4,36 +4,6 @@
 import pygame
 from settings import *
 
-# Call this function so the Pygame library can initialize itself
-pygame.init()
-
-clock = pygame.time.Clock()
-# Create an 606x606 sized screen
-screen = pygame.display.set_mode([606, 606])
-font = pygame.font.Font("freesansbold.ttf", 24)
-
-
-# This is a list of 'sprites.' Each block in the program is
-# added to this list. The list is managed by a class called 'RenderPlain.'
-def configure_initial_window():
-    Taco = pygame.image.load('images/taco.png')
-
-    # Set the title of the window
-    pygame.display.set_caption('Pacman')
-
-    # Create a surface we can draw on
-    background = pygame.Surface(screen.get_size())
-
-    # Used for converting color maps and such
-    background = background.convert()
-
-    # Fill the screen with a black background
-    background.fill(black)
-
-    pygame.display.set_icon(Taco)
-
-    pygame.font.init()
-
 
 class Wall(pygame.sprite.Sprite):
     # Constructor function
@@ -51,71 +21,6 @@ class Wall(pygame.sprite.Sprite):
         self.rect.left = x
 
 
-# This creates all the walls in room 1
-def setupRoomOne(all_sprites_list):
-    # Make the walls. (x_pos, y_pos, width, height)
-    wall_list = pygame.sprite.RenderPlain()
-
-    # This is a list of walls. Each is in the form [x, y, width, height]
-    walls = [[0, 0, 6, 600],
-             [0, 0, 600, 6],
-             [0, 600, 606, 6],
-             [600, 0, 6, 606],
-             [300, 0, 6, 66],
-             [60, 60, 186, 6],
-             [360, 60, 186, 6],
-             [60, 120, 66, 6],
-             [60, 120, 6, 126],
-             [180, 120, 246, 6],
-             [300, 120, 6, 66],
-             [480, 120, 66, 6],
-             [540, 120, 6, 126],
-             [120, 180, 126, 6],
-             [120, 180, 6, 126],
-             [360, 180, 126, 6],
-             [480, 180, 6, 126],
-             [180, 240, 6, 126],
-             [180, 360, 246, 6],
-             [420, 240, 6, 126],
-             [240, 240, 42, 6],
-             [324, 240, 42, 6],
-             [240, 240, 6, 66],
-             [240, 300, 126, 6],
-             [360, 240, 6, 66],
-             [0, 300, 66, 6],
-             [540, 300, 66, 6],
-             [60, 360, 66, 6],
-             [60, 360, 6, 186],
-             [480, 360, 66, 6],
-             [540, 360, 6, 186],
-             [120, 420, 366, 6],
-             [120, 420, 6, 66],
-             [480, 420, 6, 66],
-             [180, 480, 246, 6],
-             [300, 480, 6, 66],
-             [120, 540, 126, 6],
-             [360, 540, 126, 6]
-             ]
-
-    # Loop through the list. Create the wall, add it to the list
-    for item in walls:
-        wall = Wall(item[0], item[1], item[2], item[3], blue)
-        wall_list.add(wall)
-        all_sprites_list.add(wall)
-
-    # return our new list
-    return wall_list
-
-
-def setupGate(all_sprites_list):
-    gate = pygame.sprite.RenderPlain()
-    gate.add(Wall(282, 242, 42, 2, white))
-    all_sprites_list.add(gate)
-    return gate
-
-
-# This class represents the ball
-# It derives from the "Sprite" class in Pygame
 class Circle(pygame.sprite.Sprite):
 
     # Constructor. Pass in the color of the block, 
@@ -150,7 +55,6 @@ class Player(pygame.sprite.Sprite):
 
         # Set height, width
         self.image = pygame.image.load(filename)
-
 
         # Make our top-left corner the passed-in location.
         self.rect = self.image.get_rect()
@@ -241,148 +145,194 @@ class Player(pygame.sprite.Sprite):
                 self.rect.top = old_y
 
 
+class Game:
+    score = 0
+    pygame.init()
+
+    def __init__(self, playAlgorithm=None):
+        pygame.init()
+        self.clock = pygame.time.Clock()
+        self.screen = pygame.display.set_mode([606, 606])
+        self.font = pygame.font.Font("freesansbold.ttf", 24)
+
+        self.Pacman = Player(PACMAN_X, PACMAN_Y, "images/taco.png")
+        self.playAlgorithm = playAlgorithm
+        self.all_sprites_list = pygame.sprite.RenderPlain()
+
+        self.all_sprites_list.add(self.Pacman)
+
+        self.gate = pygame.sprite.RenderPlain()
+        self.wall_list = pygame.sprite.RenderPlain()
+        self.circle_list = pygame.sprite.RenderPlain()
+
+        self.pacman_collide = pygame.sprite.RenderPlain()
+        self.pacman_collide.add(self.Pacman)
+
+        self.setup_gate()
+        self.setup_walls_room_one()
+        self.setup_circles()
+
+    def setup_gate(self):
+        self.gate.add(Wall(282, 242, 42, 2, white))
+        self.all_sprites_list.add(self.gate)
+
+    def setup_walls_room_one(self):
+        for wall in WALLS_ROOM_ONE:
+            wall_object = Wall(wall[0], wall[1], wall[2], wall[3], pink)
+            self.wall_list.add(wall_object)
+            self.all_sprites_list.add(wall_object)
+
+    def setup_circles(self):
+        current_amount_of_circles = 0
+        for row in range(19):
+            for column in range(19):
+                if current_amount_of_circles == AMOUNT_OF_CIRCLES:
+                    break
+                # ghosts place, gate is closing entrance
+                if (row == 7 or row == 8) and (column == 8 or column == 9 or column == 10):
+                    continue
+                else:
+                    block = Circle()
+
+                    block.rect.x = (30 * column + 6) + 26
+                    block.rect.y = (30 * row + 6) + 26
+
+                    wall_collide = pygame.sprite.spritecollide(block, self.wall_list, False)
+                    pacman_collide = pygame.sprite.spritecollide(block, self.pacman_collide, False)
+
+                    if wall_collide or pacman_collide:
+                        continue
+
+                    self.circle_list.add(block)
+                    self.all_sprites_list.add(block)
+                    current_amount_of_circles += 1
+
+    def setup_initial_window(self):
+        Taco = pygame.image.load('images/taco.png')
+
+        # Set the title of the window
+        pygame.display.set_caption('Pacman')
+
+        # Create a surface we can draw on
+        background = pygame.Surface(self.screen.get_size())
+
+        # Used for converting color maps and such
+        background = background.convert()
+
+        # Fill the screen with a black background
+        background.fill(black)
+
+        pygame.display.set_icon(Taco)
+
+        pygame.font.init()
+
+    def start_game(self):
+        if self.playAlgorithm is None:
+            self.play_standart_game()
+        else:
+            self.playAlgorithm()
+
+    def play_algorithm(self):
+        pass
+
+    def play_standart_game(self):
+        while True:
+            # HANDLING KEY EVENTS
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    break
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_LEFT:
+                        self.Pacman.moveLeft()
+                    if event.key == pygame.K_RIGHT:
+                        self.Pacman.moveRight()
+                    if event.key == pygame.K_UP:
+                        self.Pacman.moveUp()
+                    if event.key == pygame.K_DOWN:
+                        self.Pacman.moveDown()
+                if event.type == pygame.KEYUP:
+                    if event.key == pygame.K_LEFT:
+                        self.Pacman.moveRight()
+                    if event.key == pygame.K_RIGHT:
+                        self.Pacman.moveLeft()
+                    if event.key == pygame.K_UP:
+                        self.Pacman.moveDown()
+                    if event.key == pygame.K_DOWN:
+                        self.Pacman.moveUp()
+            self.Pacman.update(self.wall_list, self.gate)
+
+            if self.hit_circle():
+                self.score += 1
+
+            self.draw_screen()
+
+    def hit_circle(self):
+        if pygame.sprite.spritecollide(self.Pacman, self.circle_list, True):
+            return True
+        return False
+
+    def draw_screen(self):
+        self.screen.fill(black)
+        self.all_sprites_list.draw(self.screen)
+
+        text = self.font.render("Score: " + str(self.score) + "/" + str(AMOUNT_OF_CIRCLES), True, red)
+        self.screen.blit(text, [10, 10])
+
+        if self.won():
+            self.show_won_menu("Congratulations, you won!", 145)
+
+        pygame.display.flip()
+        self.clock.tick(10)
+
+    def won(self):
+        if self.score == AMOUNT_OF_CIRCLES:
+            return True
+        return False
+
+    def show_won_menu(self, message, left):
+        while True:
+            # ALL EVENT PROCESSING SHOULD GO BELOW THIS COMMENT
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    return
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        pygame.quit()
+                        return
+                    if event.key == pygame.K_RETURN:
+                        self.start_game()
+
+            # Grey background
+            w = pygame.Surface((400, 200))  # the size of your rect
+            w.set_alpha(10)  # alpha level
+            w.fill((128, 128, 128))  # this fills the entire surface
+            self.screen.blit(w, (100, 200))  # (0,0) are the top-left coordinates
+
+            # Won or lost
+            text1 = self.font.render(message, True, white)
+            self.screen.blit(text1, [left, 233])
+
+            text2 = self.font.render("To play again, press ENTER.", True, white)
+            self.screen.blit(text2, [135, 303])
+            text3 = self.font.render("To quit, press ESCAPE.", True, white)
+            self.screen.blit(text3, [165, 333])
+
+            pygame.display.flip()
+
+            self.clock.tick(10)
+
+
 def move_left_algorithm(pacman, walls):
     if pacman.left_is_open(walls):
         print("left is open")
         pacman.moveLeft()
 
-def start_game_loop(playAlgorithm=None):
-    Pacman = Player(PACMAN_X, PACMAN_Y, "images/taco.png")
-
-    # Creation of all sprite lists
-    all_sprites_list = pygame.sprite.RenderPlain()
-    circle_list = pygame.sprite.RenderPlain()
-    pacman_collide = pygame.sprite.RenderPlain()
-    wall_list = setupRoomOne(all_sprites_list)
-    gate = setupGate(all_sprites_list)
-    pacman_collide.add(Pacman)
-    all_sprites_list.add(Pacman)
-
-    current_amount_of_circles = 0
-
-    for row in range(19):
-        for column in range(19):
-            if current_amount_of_circles >= AMOUNT_OF_CIRCLES:
-                break
-            # ghosts place, gate is closing entrance
-            if (row == 7 or row == 8) and (column == 8 or column == 9 or column == 10):
-                continue
-            else:
-                block = Circle()
-
-                block.rect.x = (30 * column + 6) + 26
-                block.rect.y = (30 * row + 6) + 26
-
-                b_collide = pygame.sprite.spritecollide(block, wall_list, False)
-                p_collide = pygame.sprite.spritecollide(block, pacman_collide, False)
-
-                if b_collide:
-                    continue
-                elif p_collide:
-                    continue
-                else:
-                    # Add the block to the list of objects
-                    circle_list.add(block)
-                    all_sprites_list.add(block)
-                    current_amount_of_circles += 1
-
-    score = 0
-
-    while True:
-        # ALL EVENT PROCESSING SHOULD GO BELOW THIS COMMENT
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                break
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
-                    Pacman.moveLeft()
-                if event.key == pygame.K_RIGHT:
-                    Pacman.moveRight()
-                if event.key == pygame.K_UP:
-                    Pacman.moveUp()
-                if event.key == pygame.K_DOWN:
-                    Pacman.moveDown()
-            if event.type == pygame.KEYUP:
-                if event.key == pygame.K_LEFT:
-                    Pacman.moveRight()
-                if event.key == pygame.K_RIGHT:
-                    Pacman.moveLeft()
-                if event.key == pygame.K_UP:
-                    Pacman.moveDown()
-                if event.key == pygame.K_DOWN:
-                    Pacman.moveUp()
-        # ALL EVENT PROCESSING SHOULD GO ABOVE THIS COMMENT
-
-        # ALL GAME LOGIC SHOULD GO BELOW THIS COMMENT
-        try:
-            playAlgorithm(Pacman, wall_list)
-        except TypeError:
-            pass
-
-        Pacman.update(wall_list, gate)
-
-        # Remove Pacman speed if algorithm is set
-        if playAlgorithm is not None:
-            Pacman.set_speed_null()
-
-        blocks_hit_list = pygame.sprite.spritecollide(Pacman, circle_list, True)
-
-        # Check the list of collisions.
-        if blocks_hit_list:
-            score += len(blocks_hit_list)
-
-        # ALL CODE TO DRAW SHOULD GO BELOW THIS COMMENT
-        screen.fill(black)
-        all_sprites_list.draw(screen)
-
-        text = font.render("Score: " + str(score) + "/" + str(current_amount_of_circles), True, red)
-        screen.blit(text, [10, 10])
-
-        if score == current_amount_of_circles:
-            game_ended("Congratulations, you won!", 145)
-
-        # ALL CODE TO DRAW SHOULD GO ABOVE THIS COMMENT
-
-        pygame.display.flip()
-        clock.tick(10)
-
-
-def game_ended(message, left):
-    while True:
-        # ALL EVENT PROCESSING SHOULD GO BELOW THIS COMMENT
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                return
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    pygame.quit()
-                    return
-                if event.key == pygame.K_RETURN:
-                    start_game_loop()
-
-        # Grey background
-        w = pygame.Surface((400, 200))  # the size of your rect
-        w.set_alpha(10)  # alpha level
-        w.fill((128, 128, 128))  # this fills the entire surface
-        screen.blit(w, (100, 200))  # (0,0) are the top-left coordinates
-
-        # Won or lost
-        text1 = font.render(message, True, white)
-        screen.blit(text1, [left, 233])
-
-        text2 = font.render("To play again, press ENTER.", True, white)
-        screen.blit(text2, [135, 303])
-        text3 = font.render("To quit, press ESCAPE.", True, white)
-        screen.blit(text3, [165, 333])
-
-        pygame.display.flip()
-
-        clock.tick(10)
-
 
 if __name__ == '__main__':
-    configure_initial_window()
-    start_game_loop()
-    pygame.quit()
+    pacman = Game()
+    pacman.start_game()
+    # configure_initial_window()
+    # start_game()
+    # pygame.quit()
