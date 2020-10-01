@@ -16,7 +16,7 @@ font = pygame.font.Font("freesansbold.ttf", 24)
 # This is a list of 'sprites.' Each block in the program is
 # added to this list. The list is managed by a class called 'RenderPlain.'
 def configure_initial_window():
-    Trollicon = pygame.image.load('images/Trollman.png')
+    Taco = pygame.image.load('images/taco.png')
 
     # Set the title of the window
     pygame.display.set_caption('Pacman')
@@ -30,7 +30,7 @@ def configure_initial_window():
     # Fill the screen with a black background
     background.fill(black)
 
-    pygame.display.set_icon(Trollicon)
+    pygame.display.set_icon(Taco)
 
     pygame.font.init()
 
@@ -149,7 +149,8 @@ class Player(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
 
         # Set height, width
-        self.image = pygame.image.load(filename).convert()
+        self.image = pygame.image.load(filename)
+
 
         # Make our top-left corner the passed-in location.
         self.rect = self.image.get_rect()
@@ -246,7 +247,7 @@ def move_left_algorithm(pacman, walls):
         pacman.moveLeft()
 
 def start_game_loop(playAlgorithm=None):
-    Pacman = Player(PACMAN_X, PACMAN_Y, "images/Trollman.png")
+    Pacman = Player(PACMAN_X, PACMAN_Y, "images/taco.png")
 
     # Creation of all sprite lists
     all_sprites_list = pygame.sprite.RenderPlain()
@@ -383,5 +384,5 @@ def game_ended(message, left):
 
 if __name__ == '__main__':
     configure_initial_window()
-    start_game_loop(move_left_algorithm)
+    start_game_loop()
     pygame.quit()
