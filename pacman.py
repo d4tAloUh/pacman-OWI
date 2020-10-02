@@ -1,9 +1,20 @@
-# Pacman in Python with PyGame
-# https://github.com/hbokmann/Pacman
-
 import pygame
 from settings import *
+import collections
 
+# MOVES = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+#
+# MOVES_TO_START = []
+# MOVES_TO_POINT = []
+#
+MOVES = ["U", "D", "R", "L"]
+
+CURRENTMOVE = "LLLLL"
+QUEUE = ["L", "LL", "LLL", "LLLLL"]
+
+
+# (x,y)
+# (x1,y)
 
 class Wall(pygame.sprite.Sprite):
     # Constructor function
@@ -113,6 +124,18 @@ class Player(pygame.sprite.Sprite):
     def left_is_open(self, walls):
         return self.check_x_open(walls, -30)
 
+    def get_neighbours(self, wall_list):
+        result = []
+        if self.up_is_open(wall_list):
+            result.append("U")
+        if self.down_is_open(wall_list):
+            result.append("D")
+        if self.left_is_open(wall_list):
+            result.append("L")
+        if self.right_is_open(wall_list):
+            result.append("R")
+        return result
+
     # Change the speed of the player
     def changespeed(self, x, y):
         self.change_x += x
@@ -149,14 +172,13 @@ class Game:
     score = 0
     pygame.init()
 
-    def __init__(self, playAlgorithm=None):
+    def __init__(self):
         pygame.init()
         self.clock = pygame.time.Clock()
         self.screen = pygame.display.set_mode([606, 606])
         self.font = pygame.font.Font("freesansbold.ttf", 24)
 
         self.Pacman = Player(PACMAN_X, PACMAN_Y, "images/taco.png")
-        self.playAlgorithm = playAlgorithm
         self.all_sprites_list = pygame.sprite.RenderPlain()
 
         self.all_sprites_list.add(self.Pacman)
@@ -227,13 +249,7 @@ class Game:
         pygame.font.init()
 
     def start_game(self):
-        if self.playAlgorithm is None:
-            self.play_standart_game()
-        else:
-            self.playAlgorithm()
-
-    def play_algorithm(self):
-        pass
+        self.play_standart_game()
 
     def play_standart_game(self):
         while True:
@@ -260,11 +276,15 @@ class Game:
                         self.Pacman.moveDown()
                     if event.key == pygame.K_DOWN:
                         self.Pacman.moveUp()
+
+            # UPDATE PACMAN POSITION
             self.Pacman.update(self.wall_list, self.gate)
 
+            # CHECK IF PACMAN HITS CIRCLE
             if self.hit_circle():
                 self.score += 1
 
+            # DRAW SCORE AND SPRITES
             self.draw_screen()
 
     def hit_circle(self):
@@ -303,6 +323,7 @@ class Game:
                         return
                     if event.key == pygame.K_RETURN:
                         self.start_game()
+                        break
 
             # Grey background
             w = pygame.Surface((400, 200))  # the size of your rect
@@ -313,7 +334,6 @@ class Game:
             # Won or lost
             text1 = self.font.render(message, True, white)
             self.screen.blit(text1, [left, 233])
-
             text2 = self.font.render("To play again, press ENTER.", True, white)
             self.screen.blit(text2, [135, 303])
             text3 = self.font.render("To quit, press ESCAPE.", True, white)
@@ -324,15 +344,92 @@ class Game:
             self.clock.tick(10)
 
 
-def move_left_algorithm(pacman, walls):
-    if pacman.left_is_open(walls):
-        print("left is open")
-        pacman.moveLeft()
+class Algorithm:
+    def __init__(self, Game):
+        self.game = Game
+
+    def move_to_v(self, path):
+        pass
+
+    def reverse_move(self, path):
+        result: str = ""
+        for letter in path:
+            if letter == "R":
+                result += "L"
+            if letter == "D":
+                result += "U"
+            if letter == "U":
+                result += "D"
+            if letter == "L":
+                result += "R"
+        return result
+
+    def get_move(self, path1, path2):
+        '''
+        :param path1: current path from start
+        :param path2: path to next node
+        :return: path from current node to next
+        '''
+        i = 0
+        result = ''
+        try:
+            while path1[i] == path2[i]:
+                i += 1
+            result += self.reverse_move(path1[i:len(path1)][::-1])
+            result += path2[i:len(path2)]
+        except IndexError:
+            result = path2
+        return result
+
+
+    def depth_search(self):
+        stack = collections.deque()
+        stack.append("")
+        visited = []
+        path = ""
+        while stack:
+            # V = "RRRRD"
+            v = stack.pop()
+            # MOVE
+            path_to_v = self.get_move(path, v)
+
+            while path_to_v is not '':
+                current_move = path_to_v[0]
+
+                if current_move == "R":
+                    self.game.Pacman.moveRight()
+                if current_move == "D":
+                    self.game.Pacman.moveDown()
+                if current_move == "U":
+                    self.game.Pacman.moveUp()
+                if current_move == "L":
+                    self.game.Pacman.moveLeft()
+
+                path_to_v = path_to_v[1:]
+                self.game.Pacman.update(self.game.wall_list, self.game.gate)
+                self.game.Pacman.set_speed_null()
+                self.game.draw_screen()
+
+            if self.game.hit_circle():
+                return v
+
+            if v in visited:
+                continue
+
+            # Returns R U L D
+            neighbours = self.game.Pacman.get_neighbours(self.game.wall_list)
+            for neighbour in neighbours:
+                print(v[:-1])
+                if not self.reverse_move(neighbour) == v[-1:]:
+                    stack.append(v + neighbour)
+
+            visited.append(v)
+            path = v
 
 
 if __name__ == '__main__':
     pacman = Game()
-    pacman.start_game()
-    # configure_initial_window()
-    # start_game()
-    # pygame.quit()
+    # pacman.start_game()
+    algo = Algorithm(pacman)
+    algo.depth_search()
+

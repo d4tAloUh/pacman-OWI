@@ -8,7 +8,7 @@ yellow = (255, 255, 0)
 pink = (255, 105, 180)
 green_yellow = (105, 255, 180)
 
-AMOUNT_OF_CIRCLES = 50
+AMOUNT_OF_CIRCLES = 1
 
 PACMAN_X = 303 - 16  # Width
 PACMAN_Y = (7 * 60) + 19  # Pacman height
