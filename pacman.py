@@ -2,19 +2,6 @@ import pygame
 from settings import *
 import collections
 
-# MOVES = [(0, 1), (0, -1), (1, 0), (-1, 0)]
-#
-# MOVES_TO_START = []
-# MOVES_TO_POINT = []
-#
-MOVES = ["U", "D", "R", "L"]
-
-CURRENTMOVE = "LLLLL"
-QUEUE = ["L", "LL", "LLL", "LLLLL"]
-
-
-# (x,y)
-# (x1,y)
 
 class Wall(pygame.sprite.Sprite):
     # Constructor function
@@ -127,13 +114,13 @@ class Player(pygame.sprite.Sprite):
     def get_neighbours(self, wall_list):
         result = []
         if self.up_is_open(wall_list):
-            result.append("U")
+            result.append(("U", (self.rect.left, self.rect.top - 30)))
         if self.down_is_open(wall_list):
-            result.append("D")
+            result.append(("D", (self.rect.left, self.rect.top + 30)))
         if self.left_is_open(wall_list):
-            result.append("L")
+            result.append(("L", (self.rect.left - 30, self.rect.top)))
         if self.right_is_open(wall_list):
-            result.append("R")
+            result.append(("R", (self.rect.left + 30, self.rect.top)))
         return result
 
     # Change the speed of the player
@@ -303,7 +290,7 @@ class Game:
             self.show_won_menu("Congratulations, you won!", 145)
 
         pygame.display.flip()
-        self.clock.tick(10)
+        self.clock.tick(4)
 
     def won(self):
         if self.score == AMOUNT_OF_CIRCLES:
@@ -381,18 +368,22 @@ class Algorithm:
             result = path2
         return result
 
-
     def depth_search(self):
+        self.game.clock.tick(1)
         stack = collections.deque()
-        stack.append("")
+        stack.append(("", (self.game.Pacman.rect.left, self.game.Pacman.rect.top)))
         visited = []
         path = ""
         while stack:
             # V = "RRRRD"
-            v = stack.pop()
-            # MOVE
+            v, (x, y) = stack.pop()
+
+            if (x, y) in visited:
+                continue
+
             path_to_v = self.get_move(path, v)
 
+            # MOVE
             while path_to_v is not '':
                 current_move = path_to_v[0]
 
@@ -413,23 +404,26 @@ class Algorithm:
             if self.game.hit_circle():
                 return v
 
-            if v in visited:
-                continue
-
             # Returns R U L D
             neighbours = self.game.Pacman.get_neighbours(self.game.wall_list)
-            for neighbour in neighbours:
-                print(v[:-1])
-                if not self.reverse_move(neighbour) == v[-1:]:
-                    stack.append(v + neighbour)
+            print(self.game.Pacman.rect,neighbours, stack)
+            for neighbour, (x1, y1) in neighbours:
+                # if not self.reverse_move(neighbour) == v[-1:]:
+                stack.append((v + neighbour, (x1, y1)))
 
-            visited.append(v)
+            visited.append((x, y))
             path = v
 
+    def go_left(self):
+        while self.game.Pacman.left_is_open(self.game.wall_list):
+            self.game.Pacman.moveLeft()
+            self.game.Pacman.update(self.game.wall_list, self.game.gate)
+            self.game.Pacman.set_speed_null()
+            self.game.draw_screen()
 
 if __name__ == '__main__':
     pacman = Game()
     # pacman.start_game()
     algo = Algorithm(pacman)
     algo.depth_search()
-
+    # algo.go_left()

@@ -1,4 +1,6 @@
 virtualenv/
+myvenv/
+
 
 __pycache__/
 
