@@ -334,6 +334,7 @@ class Game:
 class Algorithm:
     def __init__(self, Game):
         self.game = Game
+        self.moves = 0
 
     def move_to_v(self, path):
         pass
@@ -358,9 +359,10 @@ class Algorithm:
         :return: path from current node to next
         '''
         i = 0
+        maxi = min(len(path1), len(path2))
         result = ''
         try:
-            while path1[i] == path2[i]:
+            while i < maxi and path1[i] == path2[i]:
                 i += 1
             result += self.reverse_move(path1[i:len(path1)][::-1])
             result += path2[i:len(path2)]
@@ -380,13 +382,11 @@ class Algorithm:
 
             if (x, y) in visited:
                 continue
-
             path_to_v = self.get_move(path, v)
-
             # MOVE
             while path_to_v is not '':
+                self.moves += 1
                 current_move = path_to_v[0]
-
                 if current_move == "R":
                     self.game.Pacman.moveRight()
                 if current_move == "D":
@@ -402,28 +402,23 @@ class Algorithm:
                 self.game.draw_screen()
 
             if self.game.hit_circle():
+                print("Path: ",v)
+                print("Amount of moves: ",self.moves)
                 return v
 
             # Returns R U L D
             neighbours = self.game.Pacman.get_neighbours(self.game.wall_list)
-            print(self.game.Pacman.rect,neighbours, stack)
             for neighbour, (x1, y1) in neighbours:
-                # if not self.reverse_move(neighbour) == v[-1:]:
                 stack.append((v + neighbour, (x1, y1)))
 
             visited.append((x, y))
             path = v
 
-    def go_left(self):
-        while self.game.Pacman.left_is_open(self.game.wall_list):
-            self.game.Pacman.moveLeft()
-            self.game.Pacman.update(self.game.wall_list, self.game.gate)
-            self.game.Pacman.set_speed_null()
-            self.game.draw_screen()
 
 if __name__ == '__main__':
     pacman = Game()
     # pacman.start_game()
     algo = Algorithm(pacman)
+    # algo.get_move("RRRR", "RRRR")
     algo.depth_search()
     # algo.go_left()
