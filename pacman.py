@@ -1,3 +1,5 @@
+import random
+
 import pygame
 from settings import *
 import collections
@@ -27,17 +29,11 @@ class Circle(pygame.sprite.Sprite):
         # Call the parent class (Sprite) constructor
         pygame.sprite.Sprite.__init__(self)
 
-        # Create an image of the block, and fill it with a color.
-        # This could also be an image loaded from the disk.
         self.image = pygame.Surface([width, height])
         self.image.fill(white)
         self.image.set_colorkey(white)
         pygame.draw.ellipse(self.image, color, [0, 0, width, height])
 
-        # Fetch the rectangle object that has the dimensions of the image
-        # image.
-        # Update the position of this object by setting the values 
-        # of rect.x and rect.y
         self.rect = self.image.get_rect()
 
 
@@ -177,7 +173,7 @@ class Game:
         self.pacman_collide = pygame.sprite.RenderPlain()
         self.pacman_collide.add(self.Pacman)
 
-        self.setup_gate()
+        # self.setup_gate()
         self.setup_walls_room_one()
         self.setup_circles()
 
@@ -191,6 +187,28 @@ class Game:
             self.wall_list.add(wall_object)
             self.all_sprites_list.add(wall_object)
 
+    def setup_random_circles(self):
+        current_amount_of_circles = 0
+        while current_amount_of_circles != AMOUNT_OF_CIRCLES:
+            column = random.randint(0, 19)
+            row = random.randint(0, 19)
+
+            block = Circle()
+
+            block.rect.x = (30 * column + 6) + 26
+            block.rect.y = (30 * row + 6) + 26
+
+            wall_collide = pygame.sprite.spritecollide(block, self.wall_list, False)
+            pacman_collide = pygame.sprite.spritecollide(block, self.pacman_collide, False)
+            circles_collide = pygame.sprite.spritecollide(block, self.circle_list, False)
+
+            if wall_collide or pacman_collide or circles_collide:
+                continue
+
+            self.circle_list.add(block)
+            self.all_sprites_list.add(block)
+            current_amount_of_circles += 1
+
     def setup_circles(self):
         current_amount_of_circles = 0
         for row in range(19):
@@ -198,23 +216,23 @@ class Game:
                 if current_amount_of_circles == AMOUNT_OF_CIRCLES:
                     break
                 # ghosts place, gate is closing entrance
-                if (row == 7 or row == 8) and (column == 8 or column == 9 or column == 10):
+                # if (row == 7 or row == 8) and (column == 8 or column == 9 or column == 10):
+                #     continue
+                # else:
+                block = Circle()
+
+                block.rect.x = (30 * column + 6) + 26
+                block.rect.y = (30 * row + 6) + 26
+
+                wall_collide = pygame.sprite.spritecollide(block, self.wall_list, False)
+                pacman_collide = pygame.sprite.spritecollide(block, self.pacman_collide, False)
+
+                if wall_collide or pacman_collide:
                     continue
-                else:
-                    block = Circle()
 
-                    block.rect.x = (30 * column + 6) + 26
-                    block.rect.y = (30 * row + 6) + 26
-
-                    wall_collide = pygame.sprite.spritecollide(block, self.wall_list, False)
-                    pacman_collide = pygame.sprite.spritecollide(block, self.pacman_collide, False)
-
-                    if wall_collide or pacman_collide:
-                        continue
-
-                    self.circle_list.add(block)
-                    self.all_sprites_list.add(block)
-                    current_amount_of_circles += 1
+                self.circle_list.add(block)
+                self.all_sprites_list.add(block)
+                current_amount_of_circles += 1
 
     def setup_initial_window(self):
         Taco = pygame.image.load('images/taco.png')
@@ -290,7 +308,7 @@ class Game:
             self.show_won_menu("Congratulations, you won!", 145)
 
         pygame.display.flip()
-        self.clock.tick(4)
+        self.clock.tick(60)
 
     def won(self):
         if self.score == AMOUNT_OF_CIRCLES:
@@ -328,7 +346,7 @@ class Game:
 
             pygame.display.flip()
 
-            self.clock.tick(10)
+            self.clock.tick(60)
 
 
 class Algorithm:
@@ -336,8 +354,23 @@ class Algorithm:
         self.game = Game
         self.moves = 0
 
-    def move_to_v(self, path):
-        pass
+    def move_to_v(self, path_to_v):
+        while path_to_v is not '':
+            self.moves += 1
+            current_move = path_to_v[0]
+            if current_move == "R":
+                self.game.Pacman.moveRight()
+            if current_move == "D":
+                self.game.Pacman.moveDown()
+            if current_move == "U":
+                self.game.Pacman.moveUp()
+            if current_move == "L":
+                self.game.Pacman.moveLeft()
+
+            path_to_v = path_to_v[1:]
+            self.game.Pacman.update(self.game.wall_list, self.game.gate)
+            self.game.Pacman.set_speed_null()
+            self.game.draw_screen()
 
     def reverse_move(self, path):
         result: str = ""
@@ -371,54 +404,73 @@ class Algorithm:
         return result
 
     def depth_search(self):
-        self.game.clock.tick(1)
+        self.moves = 0
         stack = collections.deque()
         stack.append(("", (self.game.Pacman.rect.left, self.game.Pacman.rect.top)))
         visited = []
         path = ""
         while stack:
-            # V = "RRRRD"
+            # V = path to current block
+            # (x,y) - current coordinates
             v, (x, y) = stack.pop()
 
             if (x, y) in visited:
                 continue
             path_to_v = self.get_move(path, v)
-            # MOVE
-            while path_to_v is not '':
-                self.moves += 1
-                current_move = path_to_v[0]
-                if current_move == "R":
-                    self.game.Pacman.moveRight()
-                if current_move == "D":
-                    self.game.Pacman.moveDown()
-                if current_move == "U":
-                    self.game.Pacman.moveUp()
-                if current_move == "L":
-                    self.game.Pacman.moveLeft()
 
-                path_to_v = path_to_v[1:]
-                self.game.Pacman.update(self.game.wall_list, self.game.gate)
-                self.game.Pacman.set_speed_null()
-                self.game.draw_screen()
+            self.move_to_v(path_to_v)
 
             if self.game.hit_circle():
-                print("Path: ",v)
-                print("Amount of moves: ",self.moves)
+                print("Path: ", v)
+                print("Amount of moves: ", self.moves)
                 return v
 
-            # Returns R U L D
             neighbours = self.game.Pacman.get_neighbours(self.game.wall_list)
+
             for neighbour, (x1, y1) in neighbours:
                 stack.append((v + neighbour, (x1, y1)))
 
             visited.append((x, y))
             path = v
 
+        return "No PATH"
+
+    def breadth_search(self):
+        self.moves = 0
+        queue = collections.deque()
+        queue.append(("", (self.game.Pacman.rect.left, self.game.Pacman.rect.top)))
+        visited = []
+        path = ""
+        while queue:
+            # V = path to current block
+            # (x,y) - current coordinates
+            v, (x, y) = queue.popleft()
+
+            if (x, y) in visited:
+                continue
+            path_to_v = self.get_move(path, v)
+
+            self.move_to_v(path_to_v)
+
+            if self.game.hit_circle():
+                print("Path: ", v)
+                print("Amount of moves: ", self.moves)
+                return v
+
+            neighbours = self.game.Pacman.get_neighbours(self.game.wall_list)
+
+            for neighbour, (x1, y1) in neighbours:
+                queue.append((v + neighbour, (x1, y1)))
+
+            visited.append((x, y))
+            path = v
+
+        return "No PATH"
+
 
 if __name__ == '__main__':
     pacman = Game()
     # pacman.start_game()
     algo = Algorithm(pacman)
-    # algo.get_move("RRRR", "RRRR")
-    algo.depth_search()
-    # algo.go_left()
+    # algo.depth_search()
+    algo.breadth_search()
