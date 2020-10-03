@@ -472,5 +472,5 @@ if __name__ == '__main__':
     pacman = Game()
     # pacman.start_game()
     algo = Algorithm(pacman)
-    # algo.depth_search()
-    algo.breadth_search()
+    algo.depth_search()
+    # algo.breadth_search()
