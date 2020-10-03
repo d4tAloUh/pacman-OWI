@@ -1,1 +1,12 @@
+attrs==20.2.0
+importlib-metadata==2.0.0
+JsonForm==0.0.2
+jsonschema==3.2.0
+JsonSir==0.0.2
+psutil==5.7.2
 pygame==1.9.6
+pyrsistent==0.17.3
+Python-EasyConfig==0.1.7
+PyYAML==5.3.1
+six==1.15.0
+zipp==3.2.0

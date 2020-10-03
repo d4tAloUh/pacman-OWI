@@ -1,6 +1,11 @@
+import os
 import random
+import time
 
 import pygame
+import psutil
+
+
 from settings import *
 import collections
 
@@ -183,7 +188,8 @@ class Game:
 
     def setup_walls_room_one(self):
         for wall in WALLS_ROOM_ONE:
-            wall_object = Wall(wall[0], wall[1], wall[2], wall[3], pink)
+            wall_object = Wall(wall[0], wall[1], wall[2], wall[3],
+                               random.choice([pink, yellow, green_yellow, green, red]))
             self.wall_list.add(wall_object)
             self.all_sprites_list.add(wall_object)
 
@@ -308,7 +314,7 @@ class Game:
             self.show_won_menu("Congratulations, you won!", 145)
 
         pygame.display.flip()
-        self.clock.tick(60)
+        self.clock.tick(GAME_TICK)
 
     def won(self):
         if self.score == AMOUNT_OF_CIRCLES:
@@ -346,7 +352,7 @@ class Game:
 
             pygame.display.flip()
 
-            self.clock.tick(60)
+            self.clock.tick(GAME_TICK)
 
 
 class Algorithm:
@@ -404,6 +410,7 @@ class Algorithm:
         return result
 
     def search(self, method):
+        start_time = time.time()
         self.pacman_moves = 0
         algo_moves = 0
         stack = collections.deque()
@@ -428,9 +435,14 @@ class Algorithm:
             self.move_to_v(path_to_v)
 
             if self.game.hit_circle():
+                print("\n\n-----------------------------Result-------------------------------")
                 print("Path: ", v)
                 print("Amount of PACMAN moves: ", self.pacman_moves)
                 print("Amount of ALGO moves: ", algo_moves)
+                print("TIME IN SECONDS: ", (time.time() - start_time))
+                process = psutil.Process(os.getpid())
+                print(f"MEMORY USAGE: { process.memory_info().rss / 1000} KB")
+                print("-------------------------------------------------------------------\n")
                 return v
 
             neighbours = self.game.Pacman.get_neighbours(self.game.wall_list)
