@@ -352,11 +352,11 @@ class Game:
 class Algorithm:
     def __init__(self, Game):
         self.game = Game
-        self.moves = 0
+        self.pacman_moves = 0
 
     def move_to_v(self, path_to_v):
         while path_to_v is not '':
-            self.moves += 1
+            self.pacman_moves += 1
             current_move = path_to_v[0]
             if current_move == "R":
                 self.game.Pacman.moveRight()
@@ -403,8 +403,9 @@ class Algorithm:
             result = path2
         return result
 
-    def depth_search(self):
-        self.moves = 0
+    def search(self, method):
+        self.pacman_moves = 0
+        algo_moves = 0
         stack = collections.deque()
         stack.append(("", (self.game.Pacman.rect.left, self.game.Pacman.rect.top)))
         visited = []
@@ -412,17 +413,24 @@ class Algorithm:
         while stack:
             # V = path to current block
             # (x,y) - current coordinates
-            v, (x, y) = stack.pop()
+            if method == "DFS":
+                v, (x, y) = stack.pop()
+            #     else BFS
+            else:
+                v, (x, y) = stack.popleft()
 
             if (x, y) in visited:
                 continue
+
+            algo_moves += 1
             path_to_v = self.get_move(path, v)
 
             self.move_to_v(path_to_v)
 
             if self.game.hit_circle():
                 print("Path: ", v)
-                print("Amount of moves: ", self.moves)
+                print("Amount of PACMAN moves: ", self.pacman_moves)
+                print("Amount of ALGO moves: ", algo_moves)
                 return v
 
             neighbours = self.game.Pacman.get_neighbours(self.game.wall_list)
@@ -435,37 +443,11 @@ class Algorithm:
 
         return "No PATH"
 
+    def depth_search(self):
+        return self.search("DFS")
+
     def breadth_search(self):
-        self.moves = 0
-        queue = collections.deque()
-        queue.append(("", (self.game.Pacman.rect.left, self.game.Pacman.rect.top)))
-        visited = []
-        path = ""
-        while queue:
-            # V = path to current block
-            # (x,y) - current coordinates
-            v, (x, y) = queue.popleft()
-
-            if (x, y) in visited:
-                continue
-            path_to_v = self.get_move(path, v)
-
-            self.move_to_v(path_to_v)
-
-            if self.game.hit_circle():
-                print("Path: ", v)
-                print("Amount of moves: ", self.moves)
-                return v
-
-            neighbours = self.game.Pacman.get_neighbours(self.game.wall_list)
-
-            for neighbour, (x1, y1) in neighbours:
-                queue.append((v + neighbour, (x1, y1)))
-
-            visited.append((x, y))
-            path = v
-
-        return "No PATH"
+        return self.search("BFS")
 
 
 if __name__ == '__main__':

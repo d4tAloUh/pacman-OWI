@@ -12,7 +12,6 @@ AMOUNT_OF_CIRCLES = 1
 
 PACMAN_X = 303 - 16  # Width
 PACMAN_Y = (7 * 60) + 19  # Pacman height
-MONSTER_Y = (4 * 60) + 19  # Monster height
 
 WALLS_ROOM_ONE = [[0, 0, 6, 600],
                   [0, 0, 600, 6],
