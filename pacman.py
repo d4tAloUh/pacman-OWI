@@ -224,9 +224,6 @@ class Game:
                     settings.PACMAN_Y = 30*l
         return walls
 
-
-
-
     def setup_random_circles(self):
         current_amount_of_circles = 0
         while current_amount_of_circles != settings.AMOUNT_OF_CIRCLES:
@@ -297,6 +294,7 @@ class Game:
                 if k[i] == "O":
                     # + 12 because point is 4x4 and we have to position it in center
                     self.create_circle(i * 30 + 12, l * 30 + 12)
+                    settings.AMOUNT_OF_CIRCLES += 1
 
 
     def setup_initial_window(self):

@@ -8,7 +8,7 @@ yellow = (255, 255, 0)
 pink = (255, 105, 180)
 green_yellow = (105, 255, 180)
 
-AMOUNT_OF_CIRCLES = 1
+AMOUNT_OF_CIRCLES = 0
 
 PACMAN_X = 120
 PACMAN_Y = 510
