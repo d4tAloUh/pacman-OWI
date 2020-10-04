@@ -17,6 +17,8 @@ PACMAN_MOVE = 30
 
 GAME_TICK = 40
 
+map = "map.txt"
+
 WALLS_ROOM_ONE = [[0, 0, 6, 600],
                   [0, 0, 600, 6],
                   [0, 600, 606, 6],

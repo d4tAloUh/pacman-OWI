@@ -174,7 +174,7 @@ class Game:
         self.circle_list = pygame.sprite.RenderPlain()
         self.all_sprites_list = pygame.sprite.RenderPlain()
 
-        self.setup_walls("map.txt")
+        self.setup_walls(settings.map)
 
         self.Pacman = Player(settings.PACMAN_X, settings.PACMAN_Y, "images/tacopng.png")
         self.all_sprites_list.add(self.Pacman)
@@ -183,7 +183,7 @@ class Game:
         self.pacman_collide.add(self.Pacman)
 
         # self.setup_gate()
-        self.gen_circles("map.txt")
+        self.gen_circles(settings.map)
         # self.setup_circles()
 
     def refresh(self):
@@ -192,8 +192,8 @@ class Game:
         self.all_sprites_list = pygame.sprite.RenderPlain()
         self.circle_list = pygame.sprite.RenderPlain()
         self.all_sprites_list.add(self.Pacman)
-        self.setup_walls("map.txt")
-        self.gen_circles("map.txt")
+        self.setup_walls(settings.map)
+        self.gen_circles(settings.map)
         self.Pacman.set_start_pos(settings.PACMAN_X,settings.PACMAN_Y)
 
     def setup_gate(self):
@@ -524,7 +524,8 @@ class Algorithm:
 
 if __name__ == '__main__':
     pacman = Game()
-    # pacman.start_game()
+    pacman.start_game()
+    pacman.start_game()
     algo = Algorithm(pacman)
     algo.depth_search()
     algo.game.refresh()
