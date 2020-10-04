@@ -62,6 +62,10 @@ class Player(pygame.sprite.Sprite):
         self.prev_x = x
         self.prev_y = y
 
+    def set_start_pos(self,x,y):
+        self.rect.top = y
+        self.rect.left = x
+
     def set_speed_null(self):
         self.change_x = 0
         self.change_y = 0
@@ -181,6 +185,16 @@ class Game:
         # self.setup_gate()
         self.setup_walls_room_one()
         self.setup_circles()
+
+    def refresh(self):
+        del self.all_sprites_list
+        del self.circle_list
+        self.all_sprites_list = pygame.sprite.RenderPlain()
+        self.circle_list = pygame.sprite.RenderPlain()
+        self.all_sprites_list.add(self.Pacman)
+        self.setup_walls_room_one()
+        self.setup_circles()
+        self.Pacman.set_start_pos(PACMAN_X,PACMAN_Y)
 
     def setup_gate(self):
         self.gate.add(Wall(282, 242, 42, 2, white))
@@ -437,6 +451,7 @@ class Algorithm:
             if self.game.hit_circle():
                 print("\n\n-----------------------------Result-------------------------------")
                 print("Path: ", v)
+                print("Game TICK: ", GAME_TICK)
                 print("Amount of PACMAN moves: ", self.pacman_moves)
                 print("Amount of ALGO moves: ", algo_moves)
                 print("TIME IN SECONDS: ", (time.time() - start_time))
@@ -467,4 +482,6 @@ if __name__ == '__main__':
     # pacman.start_game()
     algo = Algorithm(pacman)
     algo.depth_search()
+    algo.game.refresh()
+    algo.breadth_search()
     # algo.breadth_search()
