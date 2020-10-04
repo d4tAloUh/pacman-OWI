@@ -5,8 +5,7 @@ import time
 import pygame
 import psutil
 
-
-from settings import *
+import settings
 import collections
 
 
@@ -30,13 +29,13 @@ class Circle(pygame.sprite.Sprite):
 
     # Constructor. Pass in the color of the block, 
     # and its x and y position
-    def __init__(self, color=yellow, width=4, height=4):
+    def __init__(self, color=settings.yellow, width=4, height=4):
         # Call the parent class (Sprite) constructor
         pygame.sprite.Sprite.__init__(self)
 
         self.image = pygame.Surface([width, height])
-        self.image.fill(white)
-        self.image.set_colorkey(white)
+        self.image.fill(settings.white)
+        self.image.set_colorkey(settings.white)
         pygame.draw.ellipse(self.image, color, [0, 0, width, height])
 
         self.rect = self.image.get_rect()
@@ -167,24 +166,25 @@ class Game:
     def __init__(self):
         pygame.init()
         self.clock = pygame.time.Clock()
-        self.screen = pygame.display.set_mode([606, 606])
+        self.screen = pygame.display.set_mode([570, 570])
         self.font = pygame.font.Font("freesansbold.ttf", 24)
-
-        self.Pacman = Player(PACMAN_X, PACMAN_Y, "images/taco.png")
-        self.all_sprites_list = pygame.sprite.RenderPlain()
-
-        self.all_sprites_list.add(self.Pacman)
 
         self.gate = pygame.sprite.RenderPlain()
         self.wall_list = pygame.sprite.RenderPlain()
         self.circle_list = pygame.sprite.RenderPlain()
+        self.all_sprites_list = pygame.sprite.RenderPlain()
+
+        self.setup_walls("map.txt")
+
+        self.Pacman = Player(settings.PACMAN_X, settings.PACMAN_Y, "images/tacopng.png")
+        self.all_sprites_list.add(self.Pacman)
 
         self.pacman_collide = pygame.sprite.RenderPlain()
         self.pacman_collide.add(self.Pacman)
 
         # self.setup_gate()
-        self.setup_walls_room_one()
-        self.setup_circles()
+        self.gen_circles("map.txt")
+        # self.setup_circles()
 
     def refresh(self):
         del self.all_sprites_list
@@ -192,24 +192,44 @@ class Game:
         self.all_sprites_list = pygame.sprite.RenderPlain()
         self.circle_list = pygame.sprite.RenderPlain()
         self.all_sprites_list.add(self.Pacman)
-        self.setup_walls_room_one()
-        self.setup_circles()
-        self.Pacman.set_start_pos(PACMAN_X,PACMAN_Y)
+        self.setup_walls("map.txt")
+        self.gen_circles("map.txt")
+        self.Pacman.set_start_pos(settings.PACMAN_X,settings.PACMAN_Y)
 
     def setup_gate(self):
-        self.gate.add(Wall(282, 242, 42, 2, white))
+        self.gate.add(Wall(282, 242, 42, 2, settings.white))
         self.all_sprites_list.add(self.gate)
 
-    def setup_walls_room_one(self):
-        for wall in WALLS_ROOM_ONE:
+    def setup_walls(self, filename):
+        walls = self.gen_walls(filename)
+        for wall in walls:
             wall_object = Wall(wall[0], wall[1], wall[2], wall[3],
-                               random.choice([pink, yellow, green_yellow, green, red]))
+                               settings.pink)
             self.wall_list.add(wall_object)
             self.all_sprites_list.add(wall_object)
 
+    def gen_walls(self, filename):
+        walls = []
+        lines = []
+        with open(filename) as my_file:
+            for line in my_file:
+                lines.append(line)
+        for l in range(len(lines)):
+            k = (lines[l])
+            for i in range(len(k)):
+                if k[i] == "W":
+                    walls.append([30*i, 30*l, 30, 30])
+                elif k[i] == "P":
+                    settings.PACMAN_X = 30*i
+                    settings.PACMAN_Y = 30*l
+        return walls
+
+
+
+
     def setup_random_circles(self):
         current_amount_of_circles = 0
-        while current_amount_of_circles != AMOUNT_OF_CIRCLES:
+        while current_amount_of_circles != settings.AMOUNT_OF_CIRCLES:
             column = random.randint(0, 19)
             row = random.randint(0, 19)
 
@@ -233,7 +253,7 @@ class Game:
         current_amount_of_circles = 0
         for row in range(19):
             for column in range(19):
-                if current_amount_of_circles == AMOUNT_OF_CIRCLES:
+                if current_amount_of_circles == settings.AMOUNT_OF_CIRCLES:
                     break
                 # ghosts place, gate is closing entrance
                 # if (row == 7 or row == 8) and (column == 8 or column == 9 or column == 10):
@@ -254,6 +274,31 @@ class Game:
                 self.all_sprites_list.add(block)
                 current_amount_of_circles += 1
 
+    def create_circle(self, x, y):
+        block = Circle()
+
+        block.rect.x = x
+        block.rect.y = y
+
+        #wall_collide = pygame.sprite.spritecollide(block, self.wall_list, False)
+        #pacman_collide = pygame.sprite.spritecollide(block, self.pacman_collide, False)
+
+        self.circle_list.add(block)
+        self.all_sprites_list.add(block)
+
+    def gen_circles(self, filename):
+        lines = []
+        with open(filename) as my_file:
+            for line in my_file:
+                lines.append(line)
+        for l in range(len(lines)):
+            k = (lines[l])
+            for i in range(len(k)):
+                if k[i] == "O":
+                    # + 12 because point is 4x4 and we have to position it in center
+                    self.create_circle(i * 30 + 12, l * 30 + 12)
+
+
     def setup_initial_window(self):
         Taco = pygame.image.load('images/taco.png')
 
@@ -267,7 +312,7 @@ class Game:
         background = background.convert()
 
         # Fill the screen with a black background
-        background.fill(black)
+        background.fill(settings.black)
 
         pygame.display.set_icon(Taco)
 
@@ -318,20 +363,20 @@ class Game:
         return False
 
     def draw_screen(self):
-        self.screen.fill(black)
+        self.screen.fill(settings.black)
         self.all_sprites_list.draw(self.screen)
 
-        text = self.font.render("Score: " + str(self.score) + "/" + str(AMOUNT_OF_CIRCLES), True, red)
+        text = self.font.render("Score: " + str(self.score) + "/" + str(settings.AMOUNT_OF_CIRCLES), True, settings.red)
         self.screen.blit(text, [10, 10])
 
         if self.won():
             self.show_won_menu("Congratulations, you won!", 145)
 
         pygame.display.flip()
-        self.clock.tick(GAME_TICK)
+        self.clock.tick(settings.GAME_TICK)
 
     def won(self):
-        if self.score == AMOUNT_OF_CIRCLES:
+        if self.score == settings.AMOUNT_OF_CIRCLES:
             return True
         return False
 
@@ -357,16 +402,16 @@ class Game:
             self.screen.blit(w, (100, 200))  # (0,0) are the top-left coordinates
 
             # Won or lost
-            text1 = self.font.render(message, True, white)
+            text1 = self.font.render(message, True, settings.white)
             self.screen.blit(text1, [left, 233])
-            text2 = self.font.render("To play again, press ENTER.", True, white)
+            text2 = self.font.render("To play again, press ENTER.", True, settings.white)
             self.screen.blit(text2, [135, 303])
-            text3 = self.font.render("To quit, press ESCAPE.", True, white)
+            text3 = self.font.render("To quit, press ESCAPE.", True, settings.white)
             self.screen.blit(text3, [165, 333])
 
             pygame.display.flip()
 
-            self.clock.tick(GAME_TICK)
+            self.clock.tick(settings.GAME_TICK)
 
 
 class Algorithm:
@@ -451,7 +496,7 @@ class Algorithm:
             if self.game.hit_circle():
                 print("\n\n-----------------------------Result-------------------------------")
                 print("Path: ", v)
-                print("Game TICK: ", GAME_TICK)
+                print("Game TICK: ", settings.GAME_TICK)
                 print("Amount of PACMAN moves: ", self.pacman_moves)
                 print("Amount of ALGO moves: ", algo_moves)
                 print("TIME IN SECONDS: ", (time.time() - start_time))

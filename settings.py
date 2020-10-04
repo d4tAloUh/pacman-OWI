@@ -10,12 +10,12 @@ green_yellow = (105, 255, 180)
 
 AMOUNT_OF_CIRCLES = 1
 
-PACMAN_X = 303 - 16  # Width
-PACMAN_Y = (7 * 60) + 19  # Pacman height
+PACMAN_X = 120
+PACMAN_Y = 510
 
 PACMAN_MOVE = 30
 
-GAME_TICK = 33
+GAME_TICK = 40
 
 WALLS_ROOM_ONE = [[0, 0, 6, 600],
                   [0, 0, 600, 6],
