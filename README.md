@@ -25,7 +25,7 @@ cd ../..
 ### Tick was 60 fps
 | Algorithm     | Time          | Memory usage  |  Pacman Moves| Algo Moves | Path |
 | ------------- |:-------------:| -------------:| ------------:| --------:| ------:|
-| DFS           | 17.58 sec     | 35.405 MB     | 281          | 166     | RRUURRRRRRDDRRUUUULLUULLL + |
+| DFS           |   4.67 sec    | 35.405 MB     | 281          | 166     | RRUURRRRRRDDRRUUUULLUULLL + |
 |               |               |               |              |         | + LLLDDLLUUUULLLUURRRUULLL |
-| BFS           | 4.67 sec      | 35.241 MB     | 1055         | 120     | UUUUUUUUUUUULLL |
+| BFS           | 17.58 sec     | 35.241 MB     | 1055         | 120     | UUUUUUUUUUUULLL |
 
