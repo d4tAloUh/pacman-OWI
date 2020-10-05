@@ -1,10 +1,15 @@
 
 # Pacman game with Algorithms
 
-### [GITHUB LINK](https://github.com/d4tAloUh/pacman-OWI)
+### [Project Link](https://github.com/d4tAloUh/pacman-OWI)
+
+#### Used pacman from [github](https://github.com/hbokmann/Pacman)
 
 ## This project was done by Karmeliuk Kostiantyn, Kupchyk Daryna, Myronovych Oleksandr.
-
+#### Karmeliuk - made base for project
+#### Myronovych - added parsing levels from files
+#### Kupchyk - written bfs with team
+____
 **To start up the project do the following commands**<br>
 Requires python 3.6+
 ```
@@ -15,9 +20,12 @@ cd ../..
 4. pip install -r requirements.txt
 5. python pacman.py
 ```
+---
+# Results
+### Tick was 60 fps
+| Algorithm     | Time          | Memory usage  |  Pacman Moves| Algo Moves | Path |
+| ------------- |:-------------:| -------------:| ------------:| --------:| ------:|
+| DFS           | 17.58 sec     | 35.405 MB     | 281          | 166     | RRUURRRRRRDDRRUUUULLUULLL + |
+|               |               |               |              |         | + LLLDDLLUUUULLLUURRRUULLL |
+| BFS           | 4.67 sec      | 35.241 MB     | 1055         | 120     | UUUUUUUUUUUULLL |
 
-## Pacman game with Algorithms
-
-
-
-#### Used pacman from [github](https://github.com/hbokmann/Pacman)
