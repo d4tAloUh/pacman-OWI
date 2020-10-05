@@ -513,11 +513,52 @@ class Algorithm:
             self.game.refresh()
         return self.search("BFS")
 
+    def manhattan_length(self, x1: int, y1: int, x2: int, y2: int):
+        return abs(x1 - x2) + abs(y1 - y2)
+
+    def greedy_search(self):
+        # Used queue
+        if self.game_played:
+            self.game.refresh()
+        queue = collections.deque()
+        queue.append(("", (self.game.Pacman.rect.left, self.game.Pacman.rect.top), 0))
+        # queue = sorted(queue, key=lambda obj: obj[2])
+        visited = []
+        path = ""
+        while queue:
+            v, (x, y), depth = queue.popleft()
+
+            if (x, y) in visited:
+                continue
+
+            path_to_v = self.get_move(path, v)
+
+            self.move_to_v(path_to_v)
+
+            if self.game.hit_circle():
+                print("Path: ", v)
+                print("Game TICK: ", settings.GAME_TICK)
+                print("Depth:", depth)
+                return v
+
+            neighbours = self.game.Pacman.get_neighbours(self.game.wall_list)
+
+            for neighbour, (x1, y1) in neighbours:
+                queue.append((v + neighbour, (x1, y1), depth + 1))
+
+            queue = collections.deque(sorted(queue, key=lambda obj: obj[2]))
+            visited.append((x, y))
+            path = v
+
+    def a_star_search(self):
+        if self.game_played:
+            self.game.refresh()
+
 
 if __name__ == '__main__':
     pacman = Game()
     # pacman.start_game()
     algo = Algorithm(pacman)
-    algo.depth_search()
+    algo.greedy_search()
     # algo.game.refresh()
-    algo.breadth_search()
+    # algo.breadth_search()
