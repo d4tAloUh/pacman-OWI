@@ -61,9 +61,9 @@ class Player(pygame.sprite.Sprite):
         self.prev_x = x
         self.prev_y = y
 
-    def set_start_pos(self,x,y):
-        self.rect.top = y
+    def set_start_pos(self, x, y):
         self.rect.left = x
+        self.rect.top = y
 
     def set_speed_null(self):
         self.change_x = 0
@@ -162,6 +162,8 @@ class Player(pygame.sprite.Sprite):
 class Game:
     score = 0
     pygame.init()
+    PACMAN_X = 0
+    PACMAN_Y = 0
 
     def __init__(self):
         pygame.init()
@@ -170,47 +172,47 @@ class Game:
         self.font = pygame.font.Font("freesansbold.ttf", 24)
 
         self.gate = pygame.sprite.RenderPlain()
+
         self.wall_list = pygame.sprite.RenderPlain()
         self.circle_list = pygame.sprite.RenderPlain()
         self.all_sprites_list = pygame.sprite.RenderPlain()
 
-        self.setup_walls(settings.map)
+        self.parse_map_from_file(settings.map)
 
-        self.Pacman = Player(settings.PACMAN_X, settings.PACMAN_Y, "images/tacopng.png")
+        self.Pacman = Player(self.PACMAN_X, self.PACMAN_Y, "images/tacopng.png")
         self.all_sprites_list.add(self.Pacman)
 
         self.pacman_collide = pygame.sprite.RenderPlain()
         self.pacman_collide.add(self.Pacman)
 
-        # self.setup_gate()
-        self.gen_circles(settings.map)
-        # self.setup_circles()
+        # self.setup_random_circles()
 
     def refresh(self):
         del self.all_sprites_list
         del self.circle_list
+        del self.wall_list
+        del self.Pacman
+        del self.pacman_collide
+
+        self.PACMAN_X = 0
+        self.PACMAN_Y = 0
+        self.score = 0
+
         self.all_sprites_list = pygame.sprite.RenderPlain()
         self.circle_list = pygame.sprite.RenderPlain()
+        self.wall_list = pygame.sprite.RenderPlain()
+
+        self.parse_map_from_file(settings.map)
+
+        self.Pacman = Player(self.PACMAN_X, self.PACMAN_Y, "images/tacopng.png")
         self.all_sprites_list.add(self.Pacman)
-        self.setup_walls(settings.map)
-        self.gen_circles(settings.map)
-        self.Pacman.set_start_pos(settings.PACMAN_X,settings.PACMAN_Y)
 
-    def setup_gate(self):
-        self.gate.add(Wall(282, 242, 42, 2, settings.white))
-        self.all_sprites_list.add(self.gate)
+        self.pacman_collide = pygame.sprite.RenderPlain()
+        self.pacman_collide.add(self.Pacman)
 
-    def setup_walls(self, filename):
-        walls = self.gen_walls(filename)
-        for wall in walls:
-            wall_object = Wall(wall[0], wall[1], wall[2], wall[3],
-                               settings.pink)
-            self.wall_list.add(wall_object)
-            self.all_sprites_list.add(wall_object)
-
-    def gen_walls(self, filename):
-        walls = []
+    def parse_map_from_file(self, filename):
         lines = []
+        settings.AMOUNT_OF_CIRCLES = 0
         with open(filename) as my_file:
             for line in my_file:
                 lines.append(line)
@@ -218,22 +220,27 @@ class Game:
             k = (lines[l])
             for i in range(len(k)):
                 if k[i] == "W":
-                    walls.append([30*i, 30*l, 30, 30])
+                    wall_object = Wall(30 * i, 30 * l, 30, 30,
+                                       random.choice([settings.blue, settings.green_yellow]))
+                    self.wall_list.add(wall_object)
+                    self.all_sprites_list.add(wall_object)
                 elif k[i] == "P":
-                    settings.PACMAN_X = 30*i
-                    settings.PACMAN_Y = 30*l
-        return walls
+                    self.PACMAN_X = 30 * i
+                    self.PACMAN_Y = 30 * l
+                elif k[i] == "O":
+                    self.create_circle(i * 30 + 12, l * 30 + 12)
+                    settings.AMOUNT_OF_CIRCLES += 1
 
     def setup_random_circles(self):
         current_amount_of_circles = 0
         while current_amount_of_circles != settings.AMOUNT_OF_CIRCLES:
-            column = random.randint(0, 19)
-            row = random.randint(0, 19)
+            column = random.randint(0, 18)
+            row = random.randint(0, 18)
 
             block = Circle()
 
-            block.rect.x = (30 * column + 6) + 26
-            block.rect.y = (30 * row + 6) + 26
+            block.rect.x = 30 * column + 12
+            block.rect.y = 30 * row + 12
 
             wall_collide = pygame.sprite.spritecollide(block, self.wall_list, False)
             pacman_collide = pygame.sprite.spritecollide(block, self.pacman_collide, False)
@@ -241,7 +248,7 @@ class Game:
 
             if wall_collide or pacman_collide or circles_collide:
                 continue
-
+            print(block.rect)
             self.circle_list.add(block)
             self.all_sprites_list.add(block)
             current_amount_of_circles += 1
@@ -252,10 +259,6 @@ class Game:
             for column in range(19):
                 if current_amount_of_circles == settings.AMOUNT_OF_CIRCLES:
                     break
-                # ghosts place, gate is closing entrance
-                # if (row == 7 or row == 8) and (column == 8 or column == 9 or column == 10):
-                #     continue
-                # else:
                 block = Circle()
 
                 block.rect.x = (30 * column + 6) + 26
@@ -277,25 +280,8 @@ class Game:
         block.rect.x = x
         block.rect.y = y
 
-        #wall_collide = pygame.sprite.spritecollide(block, self.wall_list, False)
-        #pacman_collide = pygame.sprite.spritecollide(block, self.pacman_collide, False)
-
         self.circle_list.add(block)
         self.all_sprites_list.add(block)
-
-    def gen_circles(self, filename):
-        lines = []
-        with open(filename) as my_file:
-            for line in my_file:
-                lines.append(line)
-        for l in range(len(lines)):
-            k = (lines[l])
-            for i in range(len(k)):
-                if k[i] == "O":
-                    # + 12 because point is 4x4 and we have to position it in center
-                    self.create_circle(i * 30 + 12, l * 30 + 12)
-                    settings.AMOUNT_OF_CIRCLES += 1
-
 
     def setup_initial_window(self):
         Taco = pygame.image.load('images/taco.png')
@@ -390,6 +376,7 @@ class Game:
                         pygame.quit()
                         return
                     if event.key == pygame.K_RETURN:
+                        self.refresh()
                         self.start_game()
                         break
 
@@ -415,6 +402,7 @@ class Game:
 class Algorithm:
     def __init__(self, Game):
         self.game = Game
+        self.game_played = False
         self.pacman_moves = 0
 
     def move_to_v(self, path_to_v):
@@ -468,6 +456,7 @@ class Algorithm:
 
     def search(self, method):
         start_time = time.time()
+        self.game_played = True
         self.pacman_moves = 0
         algo_moves = 0
         stack = collections.deque()
@@ -493,13 +482,14 @@ class Algorithm:
 
             if self.game.hit_circle():
                 print("\n\n-----------------------------Result-------------------------------")
+                print("Algorithm: ", method)
                 print("Path: ", v)
                 print("Game TICK: ", settings.GAME_TICK)
                 print("Amount of PACMAN moves: ", self.pacman_moves)
                 print("Amount of ALGO moves: ", algo_moves)
                 print("TIME IN SECONDS: ", (time.time() - start_time))
                 process = psutil.Process(os.getpid())
-                print(f"MEMORY USAGE: { process.memory_info().rss / 1000} KB")
+                print(f"MEMORY USAGE: {process.memory_info().rss / 1000} KB")
                 print("-------------------------------------------------------------------\n")
                 return v
 
@@ -514,18 +504,20 @@ class Algorithm:
         return "No PATH"
 
     def depth_search(self):
+        if self.game_played:
+            self.game.refresh()
         return self.search("DFS")
 
     def breadth_search(self):
+        if self.game_played:
+            self.game.refresh()
         return self.search("BFS")
 
 
 if __name__ == '__main__':
     pacman = Game()
-    pacman.start_game()
-    pacman.start_game()
+    # pacman.start_game()
     algo = Algorithm(pacman)
-    # algo.depth_search()
+    algo.depth_search()
     # algo.game.refresh()
     algo.breadth_search()
-    # algo.breadth_search()
