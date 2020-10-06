@@ -677,5 +677,5 @@ if __name__ == '__main__':
     # algo.a_star_search()
     # algo.greedy_search()
     # algo.game.refresh()
-    algo.breadth_search()
+    # algo.breadth_search()
     # algo.depth_search()
