@@ -15,9 +15,9 @@ PACMAN_Y = 510
 
 PACMAN_MOVE = 30
 
-GAME_TICK = 60
+GAME_TICK = 33
 
-map = "map.txt"
+map = "map2.txt"
 
 WALLS_ROOM_ONE = [[0, 0, 6, 600],
                   [0, 0, 600, 6],

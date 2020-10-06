@@ -164,6 +164,7 @@ class Game:
     pygame.init()
     PACMAN_X = 0
     PACMAN_Y = 0
+    circles_coords = []
 
     def __init__(self):
         pygame.init()
@@ -186,6 +187,8 @@ class Game:
         self.pacman_collide.add(self.Pacman)
 
         # self.setup_random_circles()
+    def get_circle_coords(self):
+        return self.circles_coords.pop()
 
     def refresh(self):
         del self.all_sprites_list
@@ -229,6 +232,7 @@ class Game:
                     self.PACMAN_Y = 30 * l
                 elif k[i] == "O":
                     self.create_circle(i * 30 + 12, l * 30 + 12)
+                    self.circles_coords.append((i * 30 + 12, l * 30 + 12))
                     settings.AMOUNT_OF_CIRCLES += 1
 
     def setup_random_circles(self):
@@ -459,10 +463,14 @@ class Algorithm:
         self.game_played = True
         self.pacman_moves = 0
         algo_moves = 0
+
         stack = collections.deque()
+
         stack.append(("", (self.game.Pacman.rect.left, self.game.Pacman.rect.top)))
+
         visited = []
         path = ""
+
         while stack:
             # V = path to current block
             # (x,y) - current coordinates
@@ -476,6 +484,7 @@ class Algorithm:
                 continue
 
             algo_moves += 1
+
             path_to_v = self.get_move(path, v)
 
             self.move_to_v(path_to_v)
@@ -520,14 +529,16 @@ class Algorithm:
         # Used queue
         if self.game_played:
             self.game.refresh()
+        circle_x, circle_y = self.game.get_circle_coords()
         queue = collections.deque()
         queue.append(("", (self.game.Pacman.rect.left, self.game.Pacman.rect.top), 0))
         # queue = sorted(queue, key=lambda obj: obj[2])
         visited = []
         path = ""
         while queue:
+            print("Current Que",queue)
             v, (x, y), depth = queue.popleft()
-
+            print("Current depth: ", depth)
             if (x, y) in visited:
                 continue
 
@@ -544,7 +555,8 @@ class Algorithm:
             neighbours = self.game.Pacman.get_neighbours(self.game.wall_list)
 
             for neighbour, (x1, y1) in neighbours:
-                queue.append((v + neighbour, (x1, y1), depth + 1))
+                queue.append((v + neighbour, (x1, y1), self.manhattan_length(circle_x,circle_y,x1,y1)))
+
 
             queue = collections.deque(sorted(queue, key=lambda obj: obj[2]))
             visited.append((x, y))
@@ -557,9 +569,9 @@ class Algorithm:
 
 if __name__ == '__main__':
     pacman = Game()
-    # pacman.start_game()
-    algo = Algorithm(pacman)
+    pacman.start_game()
+    # algo = Algorithm(pacman)
     # algo.greedy_search()
     # algo.game.refresh()
-    algo.breadth_search()
-    algo.depth_search()
+    # algo.breadth_search()
+    # algo.depth_search()

@@ -21,7 +21,7 @@ cd ../..
 5. python pacman.py
 ```
 ---
-# Results
+# Results   
 ### Tick was 60 fps
 | Algorithm     | Time          | Memory usage  |  Pacman Moves| Algo Moves | Path |
 | ------------- |:-------------:| -------------:| ------------:| --------:| ------:|
