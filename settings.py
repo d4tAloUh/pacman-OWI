@@ -15,7 +15,7 @@ PACMAN_Y = 510
 
 PACMAN_MOVE = 30
 
-GAME_TICK = 33
+GAME_TICK = 66
 
 map = "map2.txt"
 

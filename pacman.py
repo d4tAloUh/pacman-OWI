@@ -189,7 +189,7 @@ class Game:
         # self.setup_random_circles()
 
     def get_circle_coords(self):
-        return self.circles_coords[0]
+        return self.circles_coords[0][0] - 12, self.circles_coords[0][1] - 12
 
     def refresh(self):
         del self.all_sprites_list
@@ -677,5 +677,5 @@ if __name__ == '__main__':
     # algo.a_star_search()
     # algo.greedy_search()
     # algo.game.refresh()
-    # algo.breadth_search()
+    algo.breadth_search()
     # algo.depth_search()
