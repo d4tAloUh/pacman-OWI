@@ -591,7 +591,7 @@ class Algorithm:
                 else:
                     queue.append(
                         (v + neighbour, (x1, y1), cost + self.manhattan_length(circle_x, circle_y, x1, y1),
-                         cost + 1))
+                         self.manhattan_length(start_x, start_y, x1, y1)))
 
             queue = collections.deque(sorted(queue, key=sortBy))
             visited.append((x, y))
@@ -603,7 +603,7 @@ if __name__ == '__main__':
     # pacman.start_game()
     algo = Algorithm(pacman)
     algo.a_star_search()
-    algo.greedy_search()
+    # algo.greedy_search()
     # algo.game.refresh()
-    algo.breadth_search()
-    algo.depth_search()
+    # algo.breadth_search()
+    # algo.depth_search()
