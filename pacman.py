@@ -413,6 +413,10 @@ class Algorithm:
 
     def move_to_v(self, path_to_v):
         while path_to_v is not '':
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    break
             self.pacman_moves += 1
             current_move = path_to_v[0]
             if current_move == "R":
