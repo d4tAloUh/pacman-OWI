@@ -492,7 +492,7 @@ class Algorithm:
             self.move_to_v(path_to_v)
 
             if self.game.hit_circle():
-                self.print_result(v, algo_moves,method)
+                self.print_result(v, algo_moves, method)
                 return v
 
             neighbours = self.game.Pacman.get_neighbours(self.game.wall_list)
@@ -521,77 +521,20 @@ class Algorithm:
     def greedy_search(self):
         if self.game_played:
             self.game.refresh()
-        self.game_played = True
-        algo_moves = 0
-        circle_x, circle_y = self.game.get_circle_coords()
-        queue = collections.deque()
-        queue.append(("", (self.game.Pacman.rect.left, self.game.Pacman.rect.top), 0))
-        # queue = sorted(queue, key=lambda obj: obj[2])
-        visited = []
-        path = ""
-        while queue:
-            v, (x, y), depth = queue.popleft()
-            if (x, y) in visited:
-                continue
-
-            path_to_v = self.get_move(path, v)
-
-            self.move_to_v(path_to_v)
-            algo_moves += 1
-            if self.game.hit_circle():
-                self.print_result(v, algo_moves,"Greedy")
-                return v
-
-            neighbours = self.game.Pacman.get_neighbours(self.game.wall_list)
-
-            for neighbour, (x1, y1) in neighbours:
-                queue.append((v + neighbour, (x1, y1), self.manhattan_length(circle_x, circle_y, x1, y1)))
-
-            queue = collections.deque(sorted(queue, key=lambda obj: obj[2]))
-            visited.append((x, y))
-            path = v
+        else:
+            self.game_played = True
+        self.heuristic_search("Greedy", self.manhattan_length, lambda obj: obj[2])
 
     def a_star_search(self):
         if self.game_played:
             self.game.refresh()
-        self.game_played= True
-        self.start_time = time.time()
-        circle_x, circle_y = self.game.get_circle_coords()
-        start_x, start_y = self.game.Pacman.rect.left, self.game.Pacman.rect.top
-        self.pacman_moves = 0
-        algo_moves = 0
-        queue = collections.deque()
-        queue.append(("", (start_x, start_y), self.manhattan_length(start_x, start_y, circle_x, circle_y), 0))
-        visited = []
-        path = ""
-        while queue:
-            v, (x, y), _, cost = queue.popleft()
-            if (x, y) in visited:
-                continue
+        self.game_played = True
+        self.heuristic_search("A*", self.manhattan_length, lambda obj: obj[2])
 
-            path_to_v = self.get_move(path, v)
-            algo_moves += 1
-            self.move_to_v(path_to_v)
-
-            if self.game.hit_circle():
-                self.print_result(v, algo_moves,"A*")
-                return v
-
-            neighbours = self.game.Pacman.get_neighbours(self.game.wall_list)
-
-            for neighbour, (x1, y1) in neighbours:
-                queue.append(
-                    (v + neighbour, (x1, y1), cost + self.manhattan_length(circle_x, circle_y, x1, y1),
-                     cost + 1))
-
-            queue = collections.deque(sorted(queue, key=lambda obj: obj[2]))
-            visited.append((x, y))
-            path = v
-
-    def print_result(self, Path, algo_moves,algo_name):
+    def print_result(self, path, algo_moves, algo_name):
         print("\n\n-----------------------------Result-------------------------------")
         print("Algorithm: ", algo_name)
-        print("Path: ", Path)
+        print("Path: ", path)
         print("Game TICK: ", settings.GAME_TICK)
         print("Amount of PACMAN moves: ", self.pacman_moves)
         print("Amount of ALGO moves: ", algo_moves)
@@ -599,6 +542,56 @@ class Algorithm:
         process = psutil.Process(os.getpid())
         print(f"MEMORY USAGE: {process.memory_info().rss / 1000} KB")
         print("-------------------------------------------------------------------\n")
+
+    def heuristic_search(self, method, heuristic, sortBy):
+        # Heuristic must take 4 arguments x1,y1 x2,y2
+        self.start_time = time.time()
+        self.game_played = True
+        self.pacman_moves = 0
+        algo_moves = 0
+        # Start and End positions for heuristic
+        circle_x, circle_y = self.game.get_circle_coords()
+        start_x, start_y = self.game.Pacman.rect.left, self.game.Pacman.rect.top
+
+        queue = collections.deque()
+        if method == "Greedy":
+            queue.append(("", (self.game.Pacman.rect.left, self.game.Pacman.rect.top), 0))
+        else:
+            queue.append(("", (start_x, start_y), heuristic(start_x, start_y, circle_x, circle_y), 0))
+        visited = []
+        path = ""
+
+        while queue:
+            if method == "Greedy":
+                v, (x, y), cost = queue.popleft()
+            else:
+                v, (x, y), _, cost = queue.popleft()
+
+            if (x, y) in visited:
+                continue
+
+            path_to_v = self.get_move(path, v)
+
+            self.move_to_v(path_to_v)
+            algo_moves += 1
+
+            if self.game.hit_circle():
+                self.print_result(v, algo_moves, method)
+                return v
+
+            neighbours = self.game.Pacman.get_neighbours(self.game.wall_list)
+
+            for neighbour, (x1, y1) in neighbours:
+                if method == "Greedy":
+                    queue.append((v + neighbour, (x1, y1), self.manhattan_length(circle_x, circle_y, x1, y1)))
+                else:
+                    queue.append(
+                        (v + neighbour, (x1, y1), cost + self.manhattan_length(circle_x, circle_y, x1, y1),
+                         cost + 1))
+
+            queue = collections.deque(sorted(queue, key=sortBy))
+            visited.append((x, y))
+            path = v
 
 
 if __name__ == '__main__':
