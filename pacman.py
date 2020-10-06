@@ -597,12 +597,87 @@ class Algorithm:
             visited.append((x, y))
             path = v
 
+    def test(self, method, sortBy):
+        self.start_time = time.time()
+        self.game_played = True
+        self.pacman_moves = 0
+        algo_moves = 0
+        # Start and End positions for heuristic
+        circle_x, circle_y = self.game.get_circle_coords()
+        start_x, start_y = self.game.Pacman.rect.left, self.game.Pacman.rect.top
+
+        queue = list()
+        queue.append({"path": "",
+                      "coord": (start_x, start_y),
+                      "cost": 0,
+                      "depth": 0})
+        visited = []
+        path = ""
+        while len(queue) > 0:
+
+            cell = queue[0]
+            del queue[0]
+
+            if (cell["coord"][0], cell["coord"][1]) in visited:
+                continue
+
+            path_to_v = self.get_move(path, cell["path"])
+
+            self.move_to_v(path_to_v)
+            algo_moves += 1
+
+            if self.game.hit_circle():
+                self.print_result(cell["path"], algo_moves, method)
+                return cell["path"]
+
+            neighbours = self.game.Pacman.get_neighbours(self.game.wall_list)
+
+            for neighbour, (x1, y1) in neighbours:
+                exists, existing_cell = self.cell_exists_in_list((x1, y1), queue)
+                print(exists)
+                print(existing_cell)
+                if not exists and (x1, y1) not in visited:
+                    queue.append(
+                        {"path": cell["path"] + neighbour,
+                         "coord": (x1, y1),
+                         "cost": cell["depth"] + self.manhattan_length(circle_x, circle_y, x1, y1),
+                         "depth": cell["depth"] + 1})
+                elif existing_cell is not None:
+                    if existing_cell["depth"] > cell["depth"] + 1:
+                        existing_cell["depth"] = cell["depth"] + 1
+                        queue = self.remove_existing_cell_in_list((x1, y1),queue)
+
+                        if existing_cell["coord"] in visited:
+                            visited.remove(existing_cell["coord"])
+                            queue.append(
+                                {"path": existing_cell["path"] + neighbour,
+                                 "coord": (x1, y1),
+                                 "cost": existing_cell["depth"] + self.manhattan_length(circle_x, circle_y, x1, y1),
+                                 "depth": existing_cell["depth"] + 1})
+
+            queue = collections.deque(sorted(queue, key=sortBy))
+            visited.append((cell["coord"][0], cell["coord"][1]))
+            path = cell["path"]
+
+    def remove_existing_cell_in_list(self, node, list_n: list):
+        for item in list_n:
+            if item["coord"] == node:
+                list_n.remove(item)
+        return list_n
+
+    def cell_exists_in_list(self, node, list_n):
+        for item in list_n:
+            if item["coord"] == node:
+                return True, item
+        return False, None
+
 
 if __name__ == '__main__':
     pacman = Game()
-    # pacman.start_game()
+    # # pacman.start_game()
     algo = Algorithm(pacman)
-    algo.a_star_search()
+    algo.test("A STAR", lambda x: x["cost"])
+    # algo.a_star_search()
     # algo.greedy_search()
     # algo.game.refresh()
     # algo.breadth_search()
