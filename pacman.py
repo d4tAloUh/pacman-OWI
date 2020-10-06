@@ -634,27 +634,23 @@ class Algorithm:
 
             for neighbour, (x1, y1) in neighbours:
                 exists, existing_cell = self.cell_exists_in_list((x1, y1), queue)
-                print(exists)
-                print(existing_cell)
                 if not exists and (x1, y1) not in visited:
                     queue.append(
                         {"path": cell["path"] + neighbour,
                          "coord": (x1, y1),
-                         "cost": cell["depth"] + self.manhattan_length(circle_x, circle_y, x1, y1),
+                         "cost": cell["depth"] + self.manhattan_length(circle_x, circle_y, x1, y1)/30,
                          "depth": cell["depth"] + 1})
                 elif existing_cell is not None:
                     if existing_cell["depth"] > cell["depth"] + 1:
                         existing_cell["depth"] = cell["depth"] + 1
-                        queue = self.remove_existing_cell_in_list((x1, y1),queue)
-
+                        queue = self.remove_existing_cell_in_list((x1, y1), queue)
+                        queue.append(
+                            {"path": cell["path"] + neighbour,
+                             "coord": (x1, y1),
+                             "cost": cell["depth"] + self.manhattan_length(circle_x, circle_y, x1, y1)/30,
+                             "depth": cell["depth"] + 1})
                         if existing_cell["coord"] in visited:
                             visited.remove(existing_cell["coord"])
-                            queue.append(
-                                {"path": existing_cell["path"] + neighbour,
-                                 "coord": (x1, y1),
-                                 "cost": existing_cell["depth"] + self.manhattan_length(circle_x, circle_y, x1, y1),
-                                 "depth": existing_cell["depth"] + 1})
-
             queue = collections.deque(sorted(queue, key=sortBy))
             visited.append((cell["coord"][0], cell["coord"][1]))
             path = cell["path"]
@@ -663,6 +659,7 @@ class Algorithm:
         for item in list_n:
             if item["coord"] == node:
                 list_n.remove(item)
+                return list_n
         return list_n
 
     def cell_exists_in_list(self, node, list_n):
