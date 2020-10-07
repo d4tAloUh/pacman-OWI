@@ -687,7 +687,7 @@ if __name__ == '__main__':
     pacman = Game()
     # # pacman.start_game()
     algo = Algorithm(pacman)
-    algo.test_a_star("A STAR", lambda x: x["cost"])
+    # algo.test_a_star("A* Test", lambda x: x["cost"])
     # algo.a_star_search()
     # algo.greedy_search()
     # algo.breadth_search()
