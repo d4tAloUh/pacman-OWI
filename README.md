@@ -1,7 +1,17 @@
+# Pacman game with Algorithms
 
+![Pacman Game Window](https://raw.github.com//d4tAloUh/pacman-OWI/master/images/meme.jpg)
 
+### [Project Link](https://github.com/d4tAloUh/pacman-OWI)
 
+#### Used pacman from [github](https://github.com/hbokmann/Pacman)
 
+## This project was done by Karmeliuk Kostiantyn, Kupchyk Daryna, Myronovych Oleksandr.
+
+#### Karmeliuk - made base for project
+#### Myronovych - added parsing levels from files
+#### Kupchyk - written bfs with team
+____
 ##
 **To start up the project do the following commands**<br>
 Requires python 3.6+
