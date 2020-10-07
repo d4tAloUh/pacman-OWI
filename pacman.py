@@ -597,7 +597,7 @@ class Algorithm:
             visited.append((x, y))
             path = v
 
-    def test(self, method, sortBy):
+    def test_a_star(self, method, sortBy):
         self.start_time = time.time()
         self.game_played = True
         self.pacman_moves = 0
@@ -617,30 +617,40 @@ class Algorithm:
 
             cell = queue[0]
             del queue[0]
-
+            # Look if we visited this cell, if so, continue with next cell
             if (cell["coord"][0], cell["coord"][1]) in visited:
                 continue
 
+            # get path looking "LRDU" to move from prev cell, to current cell
             path_to_v = self.get_move(path, cell["path"])
 
+            # algorithm to vizualize moving
             self.move_to_v(path_to_v)
             algo_moves += 1
-
+            # Is this cell is final destination
             if self.game.hit_circle():
+                # Print benchmarks
                 self.print_result(cell["path"], algo_moves, method)
+                # return path from start to result cell
                 return cell["path"]
 
+            # get all possible neighbours
             neighbours = self.game.Pacman.get_neighbours(self.game.wall_list)
 
             for neighbour, (x1, y1) in neighbours:
+                # check if we already added to queue or visited this node
                 exists, existing_cell = self.cell_exists_in_list((x1, y1), queue)
                 if not exists and (x1, y1) not in visited:
+                    # If it is new cell, add it to the queue
                     queue.append(
                         {"path": cell["path"] + neighbour,
                          "coord": (x1, y1),
                          "cost": cell["depth"] + self.manhattan_length(circle_x, circle_y, x1, y1)/30,
                          "depth": cell["depth"] + 1})
+                #     check if returned not null cell from algorithm
                 elif existing_cell is not None:
+                    # If depth of this exsiting cell is deeper, than it will have from current mvoe
+                    # remove it from queue, and add it with new path
                     if existing_cell["depth"] > cell["depth"] + 1:
                         existing_cell["depth"] = cell["depth"] + 1
                         queue = self.remove_existing_cell_in_list((x1, y1), queue)
@@ -649,10 +659,14 @@ class Algorithm:
                              "coord": (x1, y1),
                              "cost": cell["depth"] + self.manhattan_length(circle_x, circle_y, x1, y1)/30,
                              "depth": cell["depth"] + 1})
+                        # remove this cell from visited, because now it has less depth, then previously
                         if existing_cell["coord"] in visited:
                             visited.remove(existing_cell["coord"])
+            # Sort queue
             queue = collections.deque(sorted(queue, key=sortBy))
+            # add current cell to visited list
             visited.append((cell["coord"][0], cell["coord"][1]))
+            # remember path from start to current node
             path = cell["path"]
 
     def remove_existing_cell_in_list(self, node, list_n: list):
